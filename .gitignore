@@ -1,0 +1,46 @@
+# Maven（原有规则）
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# IDE（原有规则）
+.idea/
+.idea/modules.xml
+.idea/jarRepositories.xml
+.idea/compiler.xml
+.idea/libraries/
+*.iws
+*.iml
+*.ipr
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+.vscode/
+
+# 系统（原有规则）
+.DS_Store
+
+# ========== 通用配置忽略（核心！）==========
+# 忽略所有模块下的application配置文件（properties/yml/yaml）
+**/src/main/resources/application*.properties
+**/src/main/resources/application*.yml
+**/src/main/resources/application*.yaml
+# 忽略测试环境配置（可选）
+**/src/test/resources/application*.properties
+**/src/test/resources/application*.yml
+# 保留模板文件（仅提交.example后缀）
+!**/src/main/resources/application*.properties.example
+!**/src/main/resources/application*.yml.example
