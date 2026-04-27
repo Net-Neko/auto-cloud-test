@@ -1,5 +1,6 @@
 package org.zzf.controller.stress;
 
+import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 import org.zzf.util.JsonData;
 import org.zzf.req.stress.StressCaseDelReq;
@@ -18,6 +19,7 @@ import org.zzf.service.stress.StressCaseService;
 @RequestMapping("/api/v1/stress_case")
 public class StressCaseController {
 
+    @Resource
     private StressCaseService stressCaseService;
 
     /**

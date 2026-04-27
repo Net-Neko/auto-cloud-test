@@ -15,6 +15,6 @@ import org.zzf.service.common.ResultSenderService;
 public class KafkaResultSenderServiceImpl implements ResultSenderService {
     @Override
     public void sendResult(CaseInfoDTO caseInfoDTO, TestTypeEnum testTypeEnum, String result) {
-
+        // TODO 发送测试结果逻辑待完善
     }
 }

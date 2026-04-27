@@ -41,17 +41,17 @@ public abstract class BaseStressEngine {
     /**
      * 测试计划
      */
-    private HashTree testPlanHashTree;
+    protected HashTree testPlanHashTree;
 
     /**
      * 测试引擎
      */
-    private StandardJMeterEngine engine;
+    protected StandardJMeterEngine engine;
 
     /**
      * 测试用例
      */
-    private StressCaseDO stressCaseDO;
+    protected StressCaseDO stressCaseDO;
 
     /**
      * 测试报告
@@ -62,6 +62,11 @@ public abstract class BaseStressEngine {
      * spring的应用上下文
      */
     protected ApplicationContext applicationContext;
+
+    /**
+     * 压测是否执行异常
+     */
+    protected boolean stressTestFailed;
 
     /**
      * 模板方法，定义压测执行标准流程
@@ -80,7 +85,7 @@ public abstract class BaseStressEngine {
             this.initStressEngine();
 
             //组装测试计划 抽象方法
-            this.assembleTestPlan();
+             this.assembleTestPlan();
 
             //方便调试使用，可以不用
             this.hashTree2Jmx();
@@ -91,8 +96,8 @@ public abstract class BaseStressEngine {
             log.info("===== 压测任务执行完成 | 用例ID：{} =====", stressCaseDO.getId());
         } catch (Exception e) {
             log.error("===== 压测任务执行异常 | 用例ID：{} | 报告ID：{} =====", stressCaseDO.getId(), reportDTO.getId(), e);
-            // 异常时更新报告状态
-            this.updateReport(ReportStateEnum.EXECUTE_FAIL);
+            // 记录异常标记，统计报告完成后再更新最终状态
+            this.stressTestFailed = true;
         } finally {
             // 分开执行，防止一个方法抛异常，导致其他方法无法执行
             try {
@@ -103,10 +108,8 @@ public abstract class BaseStressEngine {
             }
 
             try {
-                // 最终更新报告状态
-                if (Objects.equals(reportDTO.getExecuteState(), ReportStateEnum.EXECUTING.name())) {
-                    this.updateReport(ReportStateEnum.COUNTING_REPORT);
-                }
+                // 更新测试报告
+                this.updateReport(ReportStateEnum.COUNTING_REPORT);
             } catch (Exception e) {
                 log.error("最终更新报告状态失败 | 报告ID：{}", reportDTO.getId(), e);
             }
@@ -192,7 +195,7 @@ public abstract class BaseStressEngine {
             return;
         }
 
-        String dirPath = System.getProperty("user.dir") + File.separator + "static" + File.separator;
+        String dirPath = System.getProperty("user.dir") + File.separator + JMX_STATIC_DIR + File.separator;
         FileUtil.mkdir(dirPath);
         String localJmxPath = dirPath + IdUtil.simpleUUID() + ".jmx";
 

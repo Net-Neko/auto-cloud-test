@@ -6,6 +6,7 @@ import org.zzf.dto.ReportDTO;
 import org.zzf.mapper.ReportMapper;
 import org.zzf.model.ReportDO;
 import org.zzf.req.ReportSaveReq;
+import org.zzf.req.ReportUpdateReq;
 import org.zzf.service.ReportService;
 import org.zzf.util.SpringBeanUtil;
 
@@ -31,5 +32,14 @@ public class ReportServiceImpl implements ReportService {
                 .name(reportDO.getName()).build();
 
         return reportDTO;
+    }
+
+    @Override
+    public void update(ReportUpdateReq req) {
+        ReportDO reportDO = new ReportDO();
+        reportDO.setId(req.getId());
+        reportDO.setExecuteState(req.getExecuteState());
+        reportDO.setEndTime(req.getEndTime());
+        reportMapper.updateById(reportDO);
     }
 }

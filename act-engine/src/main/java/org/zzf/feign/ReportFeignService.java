@@ -11,7 +11,7 @@ import org.zzf.util.JsonData;
  * @author 詹泽峰
  * @date 2026/01/11 16:07
  */
-@FeignClient("data.service")
+@FeignClient("data-service")
 public interface ReportFeignService {
     /**
      * 初始化测试报告接口

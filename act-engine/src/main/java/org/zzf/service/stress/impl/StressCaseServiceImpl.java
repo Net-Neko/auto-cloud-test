@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.zzf.dto.ReportDTO;
 import org.zzf.enums.BizCodeEnum;
@@ -12,7 +13,12 @@ import org.zzf.enums.StressSourceTypeEnum;
 import org.zzf.enums.TestTypeEnum;
 import org.zzf.exception.BizException;
 import org.zzf.feign.ReportFeignService;
+import org.zzf.mapper.EnvironmentMapper;
+import org.zzf.model.EnvironmentDO;
 import org.zzf.req.ReportSaveReq;
+import org.zzf.service.stress.core.BaseStressEngine;
+import org.zzf.service.stress.core.StressJmxEngine;
+import org.zzf.service.stress.core.StressSimpleEngine;
 import org.zzf.util.JsonData;
 import org.zzf.util.SpringBeanUtil;
 import org.zzf.dto.stress.StressCaseDTO;
@@ -37,6 +43,10 @@ public class StressCaseServiceImpl implements StressCaseService {
     private StressCaseMapper stressCaseMapper;
     @Autowired
     private ReportFeignService reportFeignService;
+    @Resource
+    private ApplicationContext applicationContext;
+    @Resource
+    private EnvironmentMapper environmentMapper;
 
     /**
      * 根据项目ID和用例ID查询压力测试用例详情
@@ -109,7 +119,7 @@ public class StressCaseServiceImpl implements StressCaseService {
      */
     @Override
     public int save(StressCaseSaveReq req) {
-        if (req == null || req.getProjectId() == null || req.getModuleId() == null || req.getEnvironmentId() == null || req.getName() == null) {
+        if (req == null || req.getProjectId() == null || req.getModuleId() == null) {
             throw new BizException(BizCodeEnum.PARAM_ERROR, new IllegalArgumentException("请求参数不能为空"));
         }
 
@@ -196,9 +206,9 @@ public class StressCaseServiceImpl implements StressCaseService {
                 ReportDTO reportDTO = jsonData.getData(ReportDTO.class);
                 // 判断压测类型
                 if (StressSourceTypeEnum.JMX.name().equalsIgnoreCase(stressCaseDO.getStressSourceType())) {
-
+                    runJmxStressCase(stressCaseDO, reportDTO);
                 } else if (StressSourceTypeEnum.SIMPLE.name().equalsIgnoreCase(stressCaseDO.getStressSourceType())) {
-
+                    runSimpleStressCase(stressCaseDO, reportDTO);
                 } else {
                     throw new BizException(BizCodeEnum.STRESS_UNSUPPORTED);
                 }
@@ -229,10 +239,18 @@ public class StressCaseServiceImpl implements StressCaseService {
     }
 
     private void runSimpleStressCase(StressCaseDO stressCaseDO, ReportDTO reportDTO) {
-
+        EnvironmentDO environmentDO = environmentMapper.selectById(stressCaseDO.getEnvironmentId());
+//        //创建引擎
+//        BaseStressEngine stressEngine = new StressSimpleEngine(environmentDO,stressCaseDO,reportDTO,applicationContext);
+//        //运行压测
+//        stressEngine.startStressTest();
     }
 
     private void runJmxStressCase(StressCaseDO stressCaseDO, ReportDTO reportDTO) {
+        // 初始化初始引擎
+        BaseStressEngine stressEngine = new StressJmxEngine(stressCaseDO, reportDTO, applicationContext);
 
+        //运行压测
+        stressEngine.startStressTest();
     }
 }

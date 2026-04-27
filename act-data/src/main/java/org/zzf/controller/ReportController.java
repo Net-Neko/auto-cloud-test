@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.zzf.dto.ReportDTO;
 import org.zzf.req.ReportSaveReq;
+import org.zzf.req.ReportUpdateReq;
 import org.zzf.service.ReportService;
 import org.zzf.util.JsonData;
 
@@ -28,5 +29,12 @@ public class ReportController {
         ReportDTO reportDTO = reportService.save(req);
 
         return JsonData.buildSuccess(reportDTO);
+    }
+
+    @PostMapping("/update")
+    public JsonData update(@RequestBody ReportUpdateReq req){
+        reportService.update(req);
+
+        return JsonData.buildSuccess();
     }
 }

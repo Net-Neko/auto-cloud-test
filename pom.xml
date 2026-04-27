@@ -122,6 +122,11 @@
             <!-- jmeter相关包 -->
             <dependency>
                 <groupId>org.apache.jmeter</groupId>
+                <artifactId>ApacheJMeter_components</artifactId>
+                <version>${jmeter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.jmeter</groupId>
                 <artifactId>ApacheJMeter_http</artifactId>
                 <version>${jmeter.version}</version>
                 <exclusions>

@@ -2,6 +2,7 @@ package org.zzf.service;
 
 import org.zzf.dto.ReportDTO;
 import org.zzf.req.ReportSaveReq;
+import org.zzf.req.ReportUpdateReq;
 
 /**
  * @author 詹泽峰
@@ -9,4 +10,6 @@ import org.zzf.req.ReportSaveReq;
  */
 public interface ReportService {
     ReportDTO save(ReportSaveReq req);
+
+    void update(ReportUpdateReq req);
 }

@@ -5,12 +5,15 @@ import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.StatObjectArgs;
+import io.minio.errors.ErrorResponseException;
 import io.minio.errors.MinioException;
 import io.minio.http.Method;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Base64Utils;
+import org.springframework.util.StringUtils;
 import org.zzf.config.MinIoConfig;
 import org.zzf.enums.BizCodeEnum;
 import org.zzf.exception.BizException;
@@ -19,6 +22,7 @@ import org.zzf.service.common.FileService;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.CompletableFuture;
@@ -89,12 +93,12 @@ public class FileServiceImpl implements FileService {
     @Override
     public String getTempAccessFileUrl(String filePath, Integer expiry, TimeUnit timeUnit) {
         // 业务规则校验
-        validateFileExist(filePath);
+        String objectName = validateFileExist(filePath);
         validateExpiryTime(expiry, timeUnit);
 
         GetPresignedObjectUrlArgs args = GetPresignedObjectUrlArgs.builder()
                 .bucket(minIoConfig.getBucketName())
-                .object(filePath)
+                .object(objectName)
                 .expiry(expiry, timeUnit)
                 .method(Method.GET)
                 .build();
@@ -108,23 +112,35 @@ public class FileServiceImpl implements FileService {
     }
 
     // 私有方法：业务规则校验（抽离成独立方法，便于维护）
-    private void validateFileExist(String filePath) {
+    private String validateFileExist(String filePath) {
+        if (!org.springframework.util.StringUtils.hasText(filePath)) {
+            log.error("MinIO文件路径为空");
+            throw new BizException(BizCodeEnum.MINIO_FILE_NOT_EXIST);
+        }
+
         try {
+            // 1. 截取最后一段：就是 Base64 编码内容
+            String base64Str = filePath.substring(filePath.lastIndexOf("/") + 1);
+
+            // 2. 解码 Base64
+            String decodedUrl = new String(org.springframework.util.Base64Utils.decodeFromUrlSafeString(base64Str));
+
+            // 3. 从解码后的URL里提取文件名（test1.jmx）
+            java.net.URL url = new java.net.URL(decodedUrl);
+            String path = url.getPath();
+            String objectName = path.substring(path.lastIndexOf("/") + 1);
+
+            // 4. 查询文件
             minioClient.statObject(
                     StatObjectArgs.builder()
                             .bucket(minIoConfig.getBucketName())
-                            .object(filePath)
+                            .object(objectName)
                             .build()
             );
-        } catch (io.minio.errors.ErrorResponseException e) {
-            // 使用 SDK 标准错误码判断
-            if ("NoSuchKey".equals(e.errorResponse().code()) || "NoSuchObject".equals(e.errorResponse().code())) {
-                throw new BizException(BizCodeEnum.MINIO_FILE_NOT_EXIST, e);
-            }
-            log.error("检查文件是否存在时发生未知异常", e);
-            throw new BizException(BizCodeEnum.MINIO_SERVICE_ERROR, e);
+
+            return objectName;
         } catch (Exception e) {
-            log.error("检查文件是否存在时发生未知异常", e);
+            log.error("MinIO文件校验失败", e);
             throw new BizException(BizCodeEnum.MINIO_SERVICE_ERROR, e);
         }
     }

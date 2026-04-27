@@ -109,6 +109,7 @@ public class EngineSampleCollector extends ResultCollector {
 
         // 序列化json对象
         String sampleResultInfoJson = JSON.toJSONString(sampleResultInfoDTO);
+//        log.info("sampleResultInfoJson: {}", sampleResultInfoJson);
 
         // 发送测试结果
         CaseInfoDTO caseInfoDTO = new CaseInfoDTO(stressCaseDO.getId(),stressCaseDO.getModuleId(),stressCaseDO.getName());
